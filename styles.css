@@ -1,0 +1,15 @@
+body.page-body {
+  background: rgba(242, 206, 213);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.font-body {
+  font-family: 'Lora', serif;
+}
