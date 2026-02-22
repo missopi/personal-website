@@ -20,6 +20,12 @@ body.page-body {
   display: block;
 }
 
+#about-svg,
+#blog-svg,
+#projects-svg {
+  opacity: 0;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
