@@ -13,3 +13,9 @@ body.page-body {
 .font-body {
   font-family: 'Lora', serif;
 }
+
+#logo-svg {
+  height: 150px;
+  width: auto;
+  display: block;
+}
