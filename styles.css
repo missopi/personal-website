@@ -19,3 +19,14 @@ body.page-body {
   width: auto;
   display: block;
 }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+#blog-svg,
+#projects-svg {
+  margin-top: 10px;
+}
