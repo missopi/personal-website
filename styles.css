@@ -1,5 +1,9 @@
 body.page-body {
-  background: rgba(242, 206, 213);
+  background-color: rgb(242, 206, 213);
+  background-image: url("svgs/background.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
