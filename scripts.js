@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { opacity: 0 },
       {
         opacity: 1,
-        duration: 1.5,
-        stagger: 0.5,
+        duration: 1.3,
+        stagger: 0.4,
         ease: 'power2.out',
       }
     );
@@ -83,15 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const strokes = paths.filter((path) => !dots.includes(path));
 
     showNavLinks();
-    const navLeadIn = navSvgs.length ? 1.5 + 0.5 * (navSvgs.length - 1) : 0;
+    const navLeadIn = navSvgs.length ? 0.5 * (navSvgs.length - 1) : 0;
 
     const tl = gsap.timeline({ defaults: { ease: 'power1.inOut' }, delay: navLeadIn });
 
     if (strokes.length) {
       tl.to(strokes, {
         strokeDashoffset: 0,
-        duration: 2,
-        stagger: 0.16,
+        duration: 1.8,
+        stagger: 0.1,
       });
 
       tl.to(
