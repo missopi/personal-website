@@ -16,6 +16,176 @@ document.addEventListener('DOMContentLoaded', () => {
     return items;
   };
 
+  const findCommentNode = (root, matcher) => {
+    const stack = Array.from(root.childNodes || []).reverse();
+
+    while (stack.length) {
+      const node = stack.pop();
+
+      if (node.nodeType === Node.COMMENT_NODE) {
+        const text = (node.nodeValue || '').trim();
+        if (matcher.test(text)) {
+          return node;
+        }
+      }
+
+      if (node.childNodes && node.childNodes.length) {
+        for (let i = node.childNodes.length - 1; i >= 0; i -= 1) {
+          stack.push(node.childNodes[i]);
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const getFollowingSiblingGroups = (commentNode) => {
+    if (!commentNode) {
+      return [];
+    }
+
+    const groups = [];
+    let sibling = commentNode.nextSibling;
+
+    while (sibling) {
+      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.tagName?.toLowerCase() === 'g') {
+        groups.push(sibling);
+      }
+      sibling = sibling.nextSibling;
+    }
+
+    return groups;
+  };
+
+  const getFlowerCenterGroup = (flower) => {
+    const centerComment = findCommentNode(flower, /\bcenter\b/i);
+    const groups = getFollowingSiblingGroups(centerComment);
+
+    if (groups.length) {
+      return groups[0];
+    }
+
+    return flower.firstElementChild;
+  };
+
+  const getFlowerPetalGroups = (flowers) => flowers.flatMap((flower) => {
+    const petalsComment = findCommentNode(flower, /\bpetals\b/i);
+    const petalGroups = getFollowingSiblingGroups(petalsComment);
+
+    if (petalGroups.length) {
+      return petalGroups;
+    }
+
+    // Fallback for unexpected SVG structure.
+    const childGroups = Array.from(flower.children);
+    if (!childGroups.length) {
+      return [];
+    }
+
+    return flower.id === 'flower-15' ? childGroups : childGroups.slice(1);
+  });
+
+  const setupFlowerPetalEasterEgg = (svgDoc, flowers) => {
+    const flower10 = svgDoc.getElementById('flower-10');
+    const flower10Center = flower10 ? getFlowerCenterGroup(flower10) : null;
+
+    if (!flower10Center || flower10Center.dataset.easterEggBound === 'true') {
+      return;
+    }
+
+    const petalGroups = getFlowerPetalGroups(flowers);
+    if (!petalGroups.length) {
+      return;
+    }
+
+    let isAnimating = false;
+
+    flower10Center.dataset.easterEggBound = 'true';
+    const triggerPetalFall = () => {
+      if (isAnimating) {
+        return;
+      }
+
+      isAnimating = true;
+
+      if (prefersReducedMotion || typeof gsap === 'undefined') {
+        petalGroups.forEach((petal) => {
+          petal.style.opacity = '0';
+        });
+
+        window.setTimeout(() => {
+          petalGroups.forEach((petal) => {
+            petal.style.opacity = '1';
+          });
+          isAnimating = false;
+        }, 2000);
+
+        return;
+      }
+
+      gsap.killTweensOf(petalGroups);
+
+      const fallDistances = new Map(
+        petalGroups.map((petal) => {
+          const rect = petal.getBoundingClientRect();
+          const distance = Math.max(window.innerHeight - rect.top + rect.height + 48, 120);
+          return [petal, distance];
+        })
+      );
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+        },
+      });
+
+      tl.to(petalGroups, {
+        y: (_, petal) => fallDistances.get(petal) || window.innerHeight,
+        rotation: () => gsap.utils.random(-35, 35),
+        opacity: 0,
+        duration: 0.85,
+        stagger: {
+          each: 0.015,
+          from: 'random',
+        },
+        ease: 'power2.in',
+      });
+
+      tl.set(petalGroups, {
+        y: 0,
+        rotation: 0,
+        opacity: 0,
+      }, '+=2');
+
+      tl.to(petalGroups, {
+        opacity: 1,
+        duration: 0.6,
+        stagger: 0.01,
+        ease: 'power2.out',
+        clearProps: 'opacity,transform',
+      });
+    };
+
+    document.addEventListener('click', (event) => {
+      const rect = flower10Center.getBoundingClientRect();
+
+      if (!rect.width || !rect.height) {
+        return;
+      }
+
+      // Slightly larger hit area so the easter egg is discoverable without pixel-perfect clicks.
+      const hitPadding = 8;
+      const withinX = event.clientX >= rect.left - hitPadding && event.clientX <= rect.right + hitPadding;
+      const withinY = event.clientY >= rect.top - hitPadding && event.clientY <= rect.bottom + hitPadding;
+
+      if (!withinX || !withinY) {
+        return;
+      }
+
+      triggerPetalFall();
+    });
+  };
+
   const animateFlowerBackground = () => {
     if (!flowerBackgroundObject) {
       return;
@@ -33,6 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
       flowerBackgroundObject.classList.add('is-ready');
       return;
     }
+
+    setupFlowerPetalEasterEgg(svgDoc, flowers);
 
     flowers.forEach((flower) => {
       flower.style.opacity = '0';
