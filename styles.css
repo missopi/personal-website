@@ -84,3 +84,19 @@ body.page-body {
   font-size: 15px;
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .nav-links {
+    flex-direction: column;
+    gap: 15%;
+  }
+  #about-svg {
+    margin-bottom: 10px;
+  }
+
+  #logo-svg {
+    width: min(85vw, 280px);
+    height: auto;
+    margin-bottom: 25%;
+  }
+}
