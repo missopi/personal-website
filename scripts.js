@@ -1,10 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
   const logoObject = document.getElementById('logo-svg');
+  const flowerBackgroundObject = document.getElementById('flower-background-object');
   const navSvgs = [
     document.getElementById('about-svg'),
     document.getElementById('blog-svg'),
     document.getElementById('projects-svg'),
   ].filter(Boolean);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const shuffleArray = (items) => {
+    for (let i = items.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+  };
+
+  const animateFlowerBackground = () => {
+    if (!flowerBackgroundObject) {
+      return;
+    }
+
+    const svgDoc = flowerBackgroundObject.contentDocument;
+    if (!svgDoc) {
+      flowerBackgroundObject.classList.add('is-ready');
+      return;
+    }
+
+    const flowers = Array.from(svgDoc.querySelectorAll('g[id^="flower-"]'));
+
+    if (!flowers.length) {
+      flowerBackgroundObject.classList.add('is-ready');
+      return;
+    }
+
+    flowers.forEach((flower) => {
+      flower.style.opacity = '0';
+    });
+    flowerBackgroundObject.classList.add('is-ready');
+
+    if (prefersReducedMotion || typeof gsap === 'undefined') {
+      flowers.forEach((flower) => {
+        flower.style.opacity = '1';
+      });
+      return;
+    }
+
+    gsap.to(shuffleArray([...flowers]), {
+      opacity: 1,
+      duration: 0.8,
+      stagger: 0.18,
+      ease: 'power2.out',
+    });
+  };
 
   const showNavLinks = (immediate = false) => {
     if (!navSvgs.length) {
@@ -47,8 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showNavLinks(true);
       return;
     }
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     paths.forEach((path) => {
       const length = path.getTotalLength();
@@ -141,5 +187,13 @@ document.addEventListener('DOMContentLoaded', () => {
     animateSvg();
   } else {
     logoObject.addEventListener('load', animateSvg, { once: true });
+  }
+
+  if (flowerBackgroundObject) {
+    if (flowerBackgroundObject.contentDocument) {
+      animateFlowerBackground();
+    } else {
+      flowerBackgroundObject.addEventListener('load', animateFlowerBackground, { once: true });
+    }
   }
 });
