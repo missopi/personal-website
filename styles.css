@@ -47,6 +47,13 @@ body.page-body {
   display: block;
 }
 
+#logo-svg-linked-page {
+  height: 80px;
+  width: auto;
+  display: block;
+  pointer-events: none;
+}
+
 #about-svg,
 #blog-svg,
 #projects-svg {
