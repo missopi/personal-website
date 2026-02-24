@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   ].filter(Boolean);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Utility functions for working with the SVG structure.
+
   const shuffleArray = (items) => {
     for (let i = items.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -85,11 +87,123 @@ document.addEventListener('DOMContentLoaded', () => {
     return flower.id === 'flower-15' ? childGroups : childGroups.slice(1);
   });
 
+  const bindFlowerCenterClick = (centerGroup, boundDatasetKey, onClick) => {
+    if (!centerGroup || centerGroup.dataset[boundDatasetKey] === 'true') {
+      return false;
+    }
+
+    centerGroup.dataset[boundDatasetKey] = 'true';
+
+    document.addEventListener('click', (event) => {
+      const rect = centerGroup.getBoundingClientRect();
+
+      if (!rect.width || !rect.height) {
+        return;
+      }
+
+      // Slightly larger hit area so the easter egg is discoverable without pixel-perfect clicks.
+      const hitPadding = 8;
+      const withinX = event.clientX >= rect.left - hitPadding && event.clientX <= rect.right + hitPadding;
+      const withinY = event.clientY >= rect.top - hitPadding && event.clientY <= rect.bottom + hitPadding;
+
+      if (!withinX || !withinY) {
+        return;
+      }
+
+      onClick(event);
+    });
+
+    return true;
+  };
+
+  // The "flower color shift" easter egg toggles the colors of the flowers to a soft pink when the center of flower 8 is clicked.
+
+  const setupFlowerColorShiftEasterEgg = (svgDoc, flowers) => {
+    const flower8 = svgDoc.getElementById('flower-8');
+    const flower8Center = flower8 ? getFlowerCenterGroup(flower8) : null;
+
+    if (!flower8Center) {
+      return;
+    }
+
+    const flowerPaths = flowers.flatMap((flower) => Array.from(flower.querySelectorAll('path')));
+    const colorPaths = flowerPaths.filter((path) => {
+      const fill = (path.getAttribute('fill') || '').trim().toLowerCase();
+      return fill && fill !== 'none';
+    });
+
+    if (!colorPaths.length) {
+      return;
+    }
+
+    colorPaths.forEach((path) => {
+      if (!path.dataset.originalFlowerFill) {
+        const originalFill = path.getAttribute('fill') || svgDoc.defaultView?.getComputedStyle(path).fill;
+        if (originalFill) {
+          path.dataset.originalFlowerFill = originalFill;
+        }
+      }
+    });
+
+    const pinkShiftFill = '#f6dbe0'; // A soft pink that contrasts well with the original colors
+    let isPinkShiftActive = false;
+    let isAnimating = false;
+
+    const toggleFlowerColors = () => {
+      if (isAnimating) {
+        return;
+      }
+
+      const nextPinkShiftState = !isPinkShiftActive;
+
+      if (prefersReducedMotion || typeof gsap === 'undefined') {
+        colorPaths.forEach((path) => {
+          if (nextPinkShiftState) {
+            path.style.fill = pinkShiftFill;
+            return;
+          }
+
+          path.style.fill = '';
+        });
+
+        isPinkShiftActive = nextPinkShiftState;
+        return;
+      }
+
+      isAnimating = true;
+      gsap.killTweensOf(colorPaths);
+
+      gsap.to(colorPaths, {
+        fill: (_, path) => (nextPinkShiftState ? pinkShiftFill : (path.dataset.originalFlowerFill || path.getAttribute('fill') || 'none')),
+        duration: 0.7,
+        ease: 'power2.inOut',
+        stagger: {
+          each: 0.003,
+          from: 'random',
+        },
+        onComplete: () => {
+          isPinkShiftActive = nextPinkShiftState;
+          isAnimating = false;
+
+          if (!isPinkShiftActive) {
+            colorPaths.forEach((path) => {
+              path.style.fill = '';
+            });
+          }
+        },
+      });
+    };
+
+    bindFlowerCenterClick(flower8Center, 'colorShiftEasterEggBound', toggleFlowerColors);
+  };
+
+  // The "flower petal fall" easter egg animates the petals of all the flowers to fall off when the center of flower 10 is clicked.
+
   const setupFlowerPetalEasterEgg = (svgDoc, flowers) => {
     const flower10 = svgDoc.getElementById('flower-10');
     const flower10Center = flower10 ? getFlowerCenterGroup(flower10) : null;
 
-    if (!flower10Center || flower10Center.dataset.easterEggBound === 'true') {
+    if (!flower10Center) {
       return;
     }
 
@@ -99,8 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let isAnimating = false;
-
-    flower10Center.dataset.easterEggBound = 'true';
     const triggerPetalFall = () => {
       if (isAnimating) {
         return;
@@ -166,24 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    document.addEventListener('click', (event) => {
-      const rect = flower10Center.getBoundingClientRect();
-
-      if (!rect.width || !rect.height) {
-        return;
-      }
-
-      // Slightly larger hit area so the easter egg is discoverable without pixel-perfect clicks.
-      const hitPadding = 8;
-      const withinX = event.clientX >= rect.left - hitPadding && event.clientX <= rect.right + hitPadding;
-      const withinY = event.clientY >= rect.top - hitPadding && event.clientY <= rect.bottom + hitPadding;
-
-      if (!withinX || !withinY) {
-        return;
-      }
-
-      triggerPetalFall();
-    });
+    bindFlowerCenterClick(flower10Center, 'petalEasterEggBound', triggerPetalFall);
   };
 
   const animateFlowerBackground = () => {
@@ -204,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    setupFlowerColorShiftEasterEgg(svgDoc, flowers);
     setupFlowerPetalEasterEgg(svgDoc, flowers);
 
     flowers.forEach((flower) => {
@@ -225,6 +321,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: 'power2.out',
     });
   };
+
+  // Shows the navigation link SVGs with a fade-in animation
 
   const showNavLinks = (immediate = false) => {
     if (!navSvgs.length) {
@@ -254,6 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
     showNavLinks(true);
     return;
   }
+
+  // The logo animation draws the logo outline paths and then fills them in.
 
   const animateSvg = () => {
     const svgDoc = logoObject.contentDocument;
