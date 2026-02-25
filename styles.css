@@ -68,6 +68,7 @@ body.link-page-body {
   width: auto;
   display: block;
   pointer-events: none;
+  margin: 30px;
 }
 
 #about-svg,
@@ -81,17 +82,6 @@ body.link-page-body {
   display: flex;
   align-items: center;
   gap: 25px;
-}
-
-.nav-link { color: #f291a3 }
-.nav-link:hover { color: #f2778e }
-.nav-link svg [fill]:not([fill="none"]) { fill: currentColor }
-.nav-link svg [stroke]:not([stroke="none"]) { stroke: currentColor }
-
-.nav-title {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 30px;
 }
 
 #blog-svg,
@@ -127,7 +117,7 @@ body.link-page-body {
 .blog-post-title {
   color: inherit /* Inherit color from the link */;
   transition: color 0.3s ease;
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 500;
   margin-left: 20px;
 }

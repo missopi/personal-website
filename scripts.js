@@ -8,6 +8,30 @@ document.addEventListener('DOMContentLoaded', () => {
   ].filter(Boolean);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Hover effect for nav links
+
+  document.querySelectorAll('.nav-links a object').forEach((obj) => {
+  const link = obj.closest('a');
+
+  const paint = (color = '') => {
+    const doc = obj.contentDocument;
+    if (!doc) return;
+
+    doc.querySelectorAll('[fill]').forEach((el) => {
+      if (el.getAttribute('fill') !== 'none') el.style.fill = color;
+    });
+  };
+
+  const bind = () => {
+    link.addEventListener('mouseenter', () => paint('#f2778e')); // A soft pink that matches the flower easter egg
+    link.addEventListener('mouseleave', () => paint('')); // resets to SVG file color
+  };
+
+  if (obj.contentDocument) bind();
+  else obj.addEventListener('load', bind, { once: true });
+});
+
+
   // Utility functions for working with the SVG structure.
 
   const shuffleArray = (items) => {
