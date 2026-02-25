@@ -55,6 +55,8 @@ body.link-page-body {
   font-family: 'Lora', serif;
 }
 
+/* SVGs */
+
 #logo-svg {
   height: 150px;
   width: auto;
@@ -91,6 +93,8 @@ body.link-page-body {
 #projects-svg {
   margin-top: 10px;
 }
+
+/* Footer styles */
 
 .site-footer {
   padding: 40px 24px;
