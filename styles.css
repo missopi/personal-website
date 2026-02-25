@@ -10,6 +10,20 @@ body.page-body {
   position: relative;
 }
 
+body.link-page-body {
+  background-image: url('svgs/flower-background.svg');
+  background-size: cover;
+  background-position: center;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
 .flower-background-layer {
   position: fixed;
   inset: 0;
@@ -70,6 +84,7 @@ body.page-body {
 .nav-title {
   display: flex;
   align-items: flex-start;
+  margin-bottom: 30px;
 }
 
 #blog-svg,
@@ -91,6 +106,29 @@ body.page-body {
   font-size: 15px;
   margin: 0;
 }
+
+/* About page styles */
+
+.about-content-box {
+  display: flex;
+  background-color: #f6e2e6;
+  border-radius: 15px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+} 
+
+.about-text {
+  font-size: 20px;
+  color: #523535;
+  font-weight: 400;
+  margin: 20px 0;
+}
+
+/* Responsive styles */
 
 @media (max-width: 768px) {
   .nav-links {
