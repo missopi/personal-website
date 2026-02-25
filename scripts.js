@@ -1,12 +1,315 @@
 document.addEventListener('DOMContentLoaded', () => {
   const logoObject = document.getElementById('logo-svg');
+  const linkedPageLogoObject = document.getElementById('logo-svg-linked-page');
   const flowerBackgroundObject = document.getElementById('flower-background-object');
+  const navLinksContainer = document.querySelector('.nav-links');
   const navSvgs = [
     document.getElementById('about-svg'),
     document.getElementById('blog-svg'),
     document.getElementById('projects-svg'),
   ].filter(Boolean);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PAGE_TRANSITION_STORAGE_KEY = 'navLogoPageTransition';
+  const LINK_PAGE_LOGO_TARGET_TOP = 30;
+  const LINK_PAGE_LOGO_TARGET_HEIGHT = 80;
+
+  const clearStoredPageTransition = () => {
+    try {
+      sessionStorage.removeItem(PAGE_TRANSITION_STORAGE_KEY);
+    } catch (_) {
+      // Ignore storage failures and continue without the transition.
+    }
+  };
+
+  const storePageTransition = (payload) => {
+    try {
+      sessionStorage.setItem(PAGE_TRANSITION_STORAGE_KEY, JSON.stringify(payload));
+    } catch (_) {
+      // Ignore storage failures and continue without the transition.
+    }
+  };
+
+  const readStoredPageTransition = () => {
+    try {
+      const raw = sessionStorage.getItem(PAGE_TRANSITION_STORAGE_KEY);
+      if (!raw) {
+        return null;
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') {
+        clearStoredPageTransition();
+        return null;
+      }
+
+      return parsed;
+    } catch (_) {
+      clearStoredPageTransition();
+      return null;
+    }
+  };
+
+  const getPathname = (href) => {
+    try {
+      return new URL(href, window.location.href).pathname;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const getLinkedPageLogoTargetRectFromSourceLogo = (logoRect) => {
+    const sourceHeight = logoRect.height || 150;
+    const scale = LINK_PAGE_LOGO_TARGET_HEIGHT / sourceHeight;
+    const width = logoRect.width * scale;
+    const height = logoRect.height * scale;
+
+    return {
+      left: (window.innerWidth - width) / 2,
+      top: LINK_PAGE_LOGO_TARGET_TOP,
+      width,
+      height,
+      scale,
+    };
+  };
+
+  const animateLinkedPageLogoArrival = () => {
+    if (!linkedPageLogoObject || prefersReducedMotion) {
+      clearStoredPageTransition();
+      return;
+    }
+
+    const transition = readStoredPageTransition();
+    if (!transition) {
+      return;
+    }
+
+    const now = Date.now();
+    const maxAgeMs = 10000;
+    if (!transition.timestamp || now - transition.timestamp > maxAgeMs) {
+      clearStoredPageTransition();
+      return;
+    }
+
+    if (transition.destinationPath !== window.location.pathname) {
+      clearStoredPageTransition();
+      return;
+    }
+
+    const startRect = transition.endRect || transition.startRect;
+    if (!startRect || !startRect.width || !startRect.height) {
+      clearStoredPageTransition();
+      return;
+    }
+
+    const destinationRect = linkedPageLogoObject.getBoundingClientRect();
+    if (!destinationRect.width || !destinationRect.height) {
+      clearStoredPageTransition();
+      return;
+    }
+
+    linkedPageLogoObject.style.visibility = 'hidden';
+
+    const overlayLogo = document.createElement('img');
+    overlayLogo.src = 'svgs/1-cropped.svg';
+    overlayLogo.alt = '';
+    overlayLogo.setAttribute('aria-hidden', 'true');
+    overlayLogo.style.position = 'fixed';
+    overlayLogo.style.left = `${startRect.left}px`;
+    overlayLogo.style.top = `${startRect.top}px`;
+    overlayLogo.style.width = `${startRect.width}px`;
+    overlayLogo.style.height = `${startRect.height}px`;
+    overlayLogo.style.pointerEvents = 'none';
+    overlayLogo.style.zIndex = '9999';
+    overlayLogo.style.transformOrigin = 'center center';
+    overlayLogo.style.willChange = 'left, top, width, height, opacity';
+    document.body.appendChild(overlayLogo);
+
+    const cleanup = () => {
+      linkedPageLogoObject.style.visibility = '';
+      overlayLogo.remove();
+      clearStoredPageTransition();
+    };
+
+    const duration = 1000;
+    const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+    if (typeof overlayLogo.animate !== 'function') {
+      cleanup();
+      return;
+    }
+
+    const animation = overlayLogo.animate(
+      [
+        {
+          left: `${startRect.left}px`,
+          top: `${startRect.top}px`,
+          width: `${startRect.width}px`,
+          height: `${startRect.height}px`,
+          opacity: 1,
+        },
+        {
+          left: `${destinationRect.left}px`,
+          top: `${destinationRect.top}px`,
+          width: `${destinationRect.width}px`,
+          height: `${destinationRect.height}px`,
+          opacity: 1,
+        },
+      ],
+      {
+        duration,
+        easing,
+        fill: 'forwards',
+      }
+    );
+
+    animation.addEventListener('finish', cleanup, { once: true });
+    animation.addEventListener('cancel', cleanup, { once: true });
+  };
+
+  const setupIndexNavPageTransition = () => {
+    if (!logoObject || !navLinksContainer || prefersReducedMotion) {
+      return;
+    }
+
+    const navLinks = Array.from(navLinksContainer.querySelectorAll('a[href]'));
+    if (!navLinks.length) {
+      return;
+    }
+
+    let isTransitioning = false;
+
+    navLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        if (isTransitioning) {
+          event.preventDefault();
+          return;
+        }
+
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+
+        const href = link.getAttribute('href');
+        const destinationPath = getPathname(href);
+        if (!href || !destinationPath) {
+          return;
+        }
+
+        event.preventDefault();
+        isTransitioning = true;
+
+        const logoRect = logoObject.getBoundingClientRect();
+        const currentCenterX = logoRect.left + (logoRect.width / 2);
+        const currentCenterY = logoRect.top + (logoRect.height / 2);
+        const targetRect = getLinkedPageLogoTargetRectFromSourceLogo(logoRect);
+        const scale = targetRect.scale;
+        const endWidth = targetRect.width;
+        const endHeight = targetRect.height;
+        const endLeft = targetRect.left;
+        const endTop = targetRect.top;
+        const targetCenterX = endLeft + (endWidth / 2);
+        const targetCenterY = endTop + (endHeight / 2);
+        const translateX = targetCenterX - currentCenterX;
+        const translateY = targetCenterY - currentCenterY;
+
+        storePageTransition({
+          destinationPath,
+          timestamp: Date.now(),
+          startRect: {
+            left: logoRect.left,
+            top: logoRect.top,
+            width: logoRect.width,
+            height: logoRect.height,
+          },
+          endRect: {
+            left: endLeft,
+            top: endTop,
+            width: endWidth,
+            height: endHeight,
+          },
+        });
+
+        logoObject.style.transformOrigin = 'center center';
+        logoObject.style.willChange = 'transform, opacity';
+        navLinksContainer.style.pointerEvents = 'none';
+        document.body.classList.add('is-page-transitioning');
+
+        const navigate = () => {
+          window.location.href = href;
+        };
+
+        if (typeof gsap !== 'undefined') {
+          gsap.killTweensOf(logoObject);
+          gsap.killTweensOf(navLinksContainer);
+
+          const tl = gsap.timeline({ onComplete: navigate });
+          tl.to(
+            navLinksContainer,
+            {
+              opacity: 0,
+              duration: 1.15,
+              ease: 'power2.out',
+            },
+            0
+          );
+          tl.to(
+            logoObject,
+            {
+              x: translateX,
+              y: translateY,
+              scale,
+              duration: 1.2,
+              ease: 'power2.inOut',
+            },
+            0
+          );
+          return;
+        }
+
+        if (typeof logoObject.animate === 'function' && typeof navLinksContainer.animate === 'function') {
+          navLinksContainer.animate(
+            [
+              { opacity: 1 },
+              { opacity: 0 },
+            ],
+            {
+              duration: 1150,
+              easing: 'ease-out',
+              fill: 'forwards',
+            }
+          );
+
+          const anim = logoObject.animate(
+            [
+              { transform: 'translate3d(0, 0, 0) scale(1)' },
+              { transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})` },
+            ],
+            {
+              duration: 1200,
+              easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+              fill: 'forwards',
+            }
+          );
+
+          anim.addEventListener('finish', navigate, { once: true });
+          anim.addEventListener('cancel', navigate, { once: true });
+          return;
+        }
+
+        navigate();
+      });
+    });
+  };
+
+  animateLinkedPageLogoArrival();
+  setupIndexNavPageTransition();
 
   // Hover effect for nav links
 
@@ -374,8 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!logoObject) {
     showNavLinks(true);
-    return;
-  }
+  } else {
 
   // The logo animation draws the logo outline paths and then fills them in.
 
@@ -483,6 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
     animateSvg();
   } else {
     logoObject.addEventListener('load', animateSvg, { once: true });
+  }
   }
 
   if (flowerBackgroundObject) {

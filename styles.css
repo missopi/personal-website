@@ -24,6 +24,22 @@ body.link-page-body {
   position: relative;
 }
 
+.linked-page-logo-slot {
+  width: 100%;
+  min-height: 140px;
+  display: flex;
+  justify-content: center;
+}
+
+.linked-page-logo-link {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: block;
+  z-index: 2;
+}
+
 .flower-background-layer {
   position: fixed;
   inset: 0;
@@ -68,7 +84,7 @@ body.link-page-body {
   width: auto;
   display: block;
   pointer-events: none;
-  margin: 30px;
+  margin: 0;
 }
 
 #about-svg,
