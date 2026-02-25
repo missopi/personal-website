@@ -52,7 +52,7 @@ body.link-page-body {
 }
 
 .font-body {
-  font-family: 'Lora', serif;
+  font-family: 'Quicksand', serif;
 }
 
 /* SVGs */
@@ -83,6 +83,11 @@ body.link-page-body {
   gap: 25px;
 }
 
+.nav-link { color: #f291a3 }
+.nav-link:hover { color: #f2778e }
+.nav-link svg [fill]:not([fill="none"]) { fill: currentColor }
+.nav-link svg [stroke]:not([stroke="none"]) { stroke: currentColor }
+
 .nav-title {
   display: flex;
   align-items: flex-start;
@@ -111,16 +116,41 @@ body.link-page-body {
   margin: 0;
 }
 
+/* Blog page styles */
+
+.blog-post {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.blog-post-title {
+  color: inherit /* Inherit color from the link */;
+  transition: color 0.3s ease;
+  font-size: 34px;
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+.blog-post a {
+  color: #523535;
+  text-decoration: none;
+}
+
+.blog-post a:hover {
+  color: #f2778e; /* A soft pink that matches the flower easter egg */
+}
+
 /* About page styles */
 
-.about-content-box {
+.content-box {
   display: flex;
   background-color: #f6e2e6;
   border-radius: 15px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  padding: 30px 25px;
   max-width: 800px;
   margin: 0 auto;
 } 
@@ -128,7 +158,7 @@ body.link-page-body {
 .about-text {
   font-size: 20px;
   color: #523535;
-  font-weight: 400;
+  font-weight: 500;
   margin: 20px 0;
 }
 
