@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let skipIndexLogoIntroAnimation = false;
   let isIndexReturnAnimating = false;
 
+  // Utility functions for managing page transition state in sessionStorage, and performing the index return animation.
+
   const clearStoredPageTransition = () => {
     try {
       sessionStorage.removeItem(PAGE_TRANSITION_STORAGE_KEY);
@@ -54,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Extracts the pathname from a URL, resolving relative URLs against the current location. Returns null for invalid URLs.
+
   const getPathname = (href) => {
     try {
       return new URL(href, window.location.href).pathname;
@@ -80,12 +84,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const pathnamesMatch = (a, b) => normalizePathname(a) === normalizePathname(b);
 
+  // Elements position and size.
+  
   const getRectSnapshot = (rect) => ({
     left: rect.left,
     top: rect.top,
     width: rect.width,
     height: rect.height,
   });
+
+  // Calculates the translation and scale needed to transform one rect to another, based on their center points.
 
   const getTransformBetweenRects = (fromRect, toRect) => {
     const fromCenterX = fromRect.left + (fromRect.width / 2);
@@ -100,6 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  // Makes sure the stored transition data is not too old and matches the current page.
+
   const getStoredTransitionMaxAgeMs = (transition) => {
     const maxAgeMs = Number(transition?.maxAgeMs);
     if (Number.isFinite(maxAgeMs) && maxAgeMs > 0) {
@@ -108,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return DEFAULT_PAGE_TRANSITION_MAX_AGE_MS;
   };
+
+  // Calculates where the logog should animate to.
 
   const getLinkedPageLogoTargetRectFromSourceLogo = (logoRect) => {
     const sourceHeight = logoRect.height || 150;
@@ -124,15 +136,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  // Checks for necessary conditions before running animations.
+
   const hasRectSize = (rect) => Boolean(rect && rect.width && rect.height);
   const hasGsap = () => typeof gsap !== 'undefined';
   const canAnimateWithGsap = () => !prefersReducedMotion && hasGsap();
+
+  // Shows the navigation links by setting their opacity.
 
   const setElementOpacity = (elements, opacity) => {
     elements.forEach((element) => {
       element.style.opacity = opacity;
     });
   };
+
+  // Determines when object elements should load.
 
   const runNowOrOnObjectLoad = (objectEl, callback) => {
     if (!objectEl) {
@@ -147,6 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     objectEl.addEventListener('load', callback, { once: true });
   };
 
+  // Only handle normal left-clicks.
+
   const isPlainLeftClick = (event) => (
     !event.defaultPrevented
     && event.button === 0
@@ -155,6 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
     && !event.shiftKey
     && !event.altKey
   );
+
+  // Reads the stored page transition data and validates it against the current page and timestamp.
 
   const readStoredTransitionForCurrentPage = () => {
     const transition = readStoredPageTransition();
@@ -174,6 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return transition;
   };
+
+  // Saves the page transition data, including the destination path and the starting and ending rectangles for the animation.
 
   const savePageTransitionRects = ({
     destinationPath,
@@ -200,6 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   };
 
+  // Prepares the navigation links for the fade-in animation.
+
   const prepareIndexNavLinksForFadeIn = () => {
     if (!navLinksContainer) {
       return;
@@ -209,6 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
     navLinksContainer.style.pointerEvents = 'none';
     setElementOpacity(navSvgs, '0');
   };
+
+  // Resets the styles applied during the index return animation.
 
   const cleanupIndexReturnAnimationState = () => {
     if (logoObject) {
@@ -224,6 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('is-page-transitioning');
     isIndexReturnAnimating = false;
   };
+
+  // Runs the index return animation.
 
   const runIndexReturnAnimation = () => {
     if (!logoObject || !navLinksContainer || isIndexReturnAnimating) {
@@ -281,10 +311,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   };
 
+  // Skips the index return animation and shows the navigation links immediately.
+
   const enterIndexReturnMode = () => {
     skipIndexLogoIntroAnimation = true;
     clearStoredPageTransition();
   };
+
+  // Starts the index return animation from the given starting rectangle.
 
   const startIndexReturnAnimationFromRect = (startRect) => {
     if (!logoObject || !hasRectSize(startRect)) {
@@ -327,6 +361,8 @@ document.addEventListener('DOMContentLoaded', () => {
     startIndexReturnAnimationFromRect(transition.startRect || transition.endRect);
   };
 
+  // Checks if the home page is mid transition.
+
   const hasIndexExitVisualState = () => {
     if (!logoObject || !navLinksContainer) {
       return false;
@@ -342,6 +378,8 @@ document.addEventListener('DOMContentLoaded', () => {
       || logoTransform !== 'none'
     );
   };
+
+  // Enters the index return mode, preparing for the animation.
 
   const setupIndexReturnTransition = () => {
     if (!logoObject || !navLinksContainer) {
@@ -363,6 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
       runIndexReturnAnimation();
     });
   };
+
+  // Sets up the page transition for returning to the home page from a linked page.
 
   const setupLinkedPageHomeReturnTransition = () => {
     if (!linkedPageLogoObject || !linkedPageLogoLink || prefersReducedMotion) {
@@ -492,6 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
     animation.addEventListener('cancel', cleanup, { once: true });
   };
 
+  // Sets up the page transition for navigating from the home page to a linked page.
+
   const setupIndexNavPageTransition = () => {
     if (!logoObject || !navLinksContainer || prefersReducedMotion) {
       return;
@@ -615,6 +657,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   };
+
+  // Runs the initial page transition animations.
 
   const initPageTransitions = () => {
     setupIndexReturnTransition();
@@ -929,6 +973,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindFlowerCenterClick(flower10Center, 'petalEasterEggBound', triggerPetalFall);
   };
+
+  // Animates the flower background on the homepage with a staggered fade-in effect, and sets up the easter eggs.
 
   const animateFlowerBackground = () => {
     if (!flowerBackgroundObject) {
