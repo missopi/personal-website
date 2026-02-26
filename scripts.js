@@ -333,8 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  animateLinkedPageLogoArrival();
-  setupIndexNavPageTransition();
+  const initPageTransitions = () => {
+    animateLinkedPageLogoArrival();
+    setupIndexNavPageTransition();
+  };
 
   // Hovering over the navigation links changes the fill color of the SVGs to a bright pink. 
 
@@ -369,7 +371,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  setupNavLinkHoverEffects();
+  const initNavInteractions = () => {
+    setupNavLinkHoverEffects();
+  };
 
 
   // Utility functions for working with the SVG structure.
@@ -811,11 +815,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  if (!logoObject) {
-    showNavLinks(true);
-  } else {
-    runNowOrOnObjectLoad(logoObject, animateLogoSvg);
-  }
+  const initLogoAnimation = () => {
+    if (!logoObject) {
+      showNavLinks(true);
+      return;
+    }
 
-  runNowOrOnObjectLoad(flowerBackgroundObject, animateFlowerBackground);
+    runNowOrOnObjectLoad(logoObject, animateLogoSvg);
+  };
+
+  const initFlowerBackground = () => {
+    runNowOrOnObjectLoad(flowerBackgroundObject, animateFlowerBackground);
+  };
+
+  const initializePage = () => {
+    initPageTransitions();
+    initNavInteractions();
+    initLogoAnimation();
+    initFlowerBackground();
+  };
+
+  initializePage();
 });
