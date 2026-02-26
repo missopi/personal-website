@@ -72,6 +72,38 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  const hasRectSize = (rect) => Boolean(rect && rect.width && rect.height);
+  const hasGsap = () => typeof gsap !== 'undefined';
+  const canAnimateWithGsap = () => !prefersReducedMotion && hasGsap();
+
+  const setElementOpacity = (elements, opacity) => {
+    elements.forEach((element) => {
+      element.style.opacity = opacity;
+    });
+  };
+
+  const runNowOrOnObjectLoad = (objectEl, callback) => {
+    if (!objectEl) {
+      return;
+    }
+
+    if (objectEl.contentDocument) {
+      callback();
+      return;
+    }
+
+    objectEl.addEventListener('load', callback, { once: true });
+  };
+
+  const isPlainLeftClick = (event) => (
+    !event.defaultPrevented
+    && event.button === 0
+    && !event.metaKey
+    && !event.ctrlKey
+    && !event.shiftKey
+    && !event.altKey
+  );
+
   const animateLinkedPageLogoArrival = () => {
     if (!linkedPageLogoObject || prefersReducedMotion) {
       clearStoredPageTransition();
@@ -96,13 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const startRect = transition.endRect || transition.startRect;
-    if (!startRect || !startRect.width || !startRect.height) {
+    if (!hasRectSize(startRect)) {
       clearStoredPageTransition();
       return;
     }
 
     const destinationRect = linkedPageLogoObject.getBoundingClientRect();
-    if (!destinationRect.width || !destinationRect.height) {
+    if (!hasRectSize(destinationRect)) {
       clearStoredPageTransition();
       return;
     }
@@ -185,14 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        if (
-          event.defaultPrevented ||
-          event.button !== 0 ||
-          event.metaKey ||
-          event.ctrlKey ||
-          event.shiftKey ||
-          event.altKey
-        ) {
+        if (!isPlainLeftClick(event)) {
           return;
         }
 
@@ -245,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = href;
         };
 
-        if (typeof gsap !== 'undefined') {
+        if (hasGsap()) {
           gsap.killTweensOf(logoObject);
           gsap.killTweensOf(navLinksContainer);
 
@@ -311,28 +336,40 @@ document.addEventListener('DOMContentLoaded', () => {
   animateLinkedPageLogoArrival();
   setupIndexNavPageTransition();
 
-  // Hover effect for nav links
+  // Hovering over the navigation links changes the fill color of the SVGs to a bright pink. 
 
-  document.querySelectorAll('.nav-links a object').forEach((obj) => {
-  const link = obj.closest('a');
+  const setupNavLinkHoverEffects = () => {
+    const navLinkObjects = document.querySelectorAll('.nav-links a object');
 
-  const paint = (color = '') => {
-    const doc = obj.contentDocument;
-    if (!doc) return;
+    navLinkObjects.forEach((obj) => {
+      const link = obj.closest('a');
+      if (!link) {
+        return;
+      }
 
-    doc.querySelectorAll('[fill]').forEach((el) => {
-      if (el.getAttribute('fill') !== 'none') el.style.fill = color;
+      const paint = (color = '') => {
+        const doc = obj.contentDocument;
+        if (!doc) {
+          return;
+        }
+
+        doc.querySelectorAll('[fill]').forEach((el) => {
+          if (el.getAttribute('fill') !== 'none') {
+            el.style.fill = color;
+          }
+        });
+      };
+
+      const bind = () => {
+        link.addEventListener('mouseenter', () => paint('#f2778e'));
+        link.addEventListener('mouseleave', () => paint(''));
+      };
+
+      runNowOrOnObjectLoad(obj, bind);
     });
   };
 
-  const bind = () => {
-    link.addEventListener('mouseenter', () => paint('#f2778e')); // A soft pink that matches the flower easter egg
-    link.addEventListener('mouseleave', () => paint('')); // resets to SVG file color
-  };
-
-  if (obj.contentDocument) bind();
-  else obj.addEventListener('load', bind, { once: true });
-});
+  setupNavLinkHoverEffects();
 
 
   // Utility functions for working with the SVG structure.
@@ -547,15 +584,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       isAnimating = true;
 
-      if (prefersReducedMotion || typeof gsap === 'undefined') {
-        petalGroups.forEach((petal) => {
-          petal.style.opacity = '0';
-        });
+      if (!canAnimateWithGsap()) {
+        setElementOpacity(petalGroups, '0');
 
         window.setTimeout(() => {
-          petalGroups.forEach((petal) => {
-            petal.style.opacity = '1';
-          });
+          setElementOpacity(petalGroups, '1');
           isAnimating = false;
         }, 2000);
 
@@ -629,15 +662,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFlowerColorShiftEasterEgg(svgDoc, flowers);
     setupFlowerPetalEasterEgg(svgDoc, flowers);
 
-    flowers.forEach((flower) => {
-      flower.style.opacity = '0';
-    });
+    setElementOpacity(flowers, '0');
     flowerBackgroundObject.classList.add('is-ready');
 
-    if (prefersReducedMotion || typeof gsap === 'undefined') {
-      flowers.forEach((flower) => {
-        flower.style.opacity = '1';
-      });
+    if (!canAnimateWithGsap()) {
+      setElementOpacity(flowers, '1');
       return;
     }
 
@@ -656,10 +685,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (immediate || typeof gsap === 'undefined') {
-      navSvgs.forEach((svg) => {
-        svg.style.opacity = '1';
-      });
+    if (immediate || !hasGsap()) {
+      setElementOpacity(navSvgs, '1');
       return;
     }
 
@@ -675,25 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   };
 
-  if (!logoObject) {
-    showNavLinks(true);
-  } else {
-
-  // The logo animation draws the logo outline paths and then fills them in.
-
-  const animateSvg = () => {
-    const svgDoc = logoObject.contentDocument;
-    if (!svgDoc) {
-      showNavLinks(true);
-      return;
-    }
-
-    const paths = Array.from(svgDoc.querySelectorAll('path'));
-    if (!paths.length) {
-      showNavLinks(true);
-      return;
-    }
-
+  const initializeLogoPathsForDrawAnimation = (svgDoc, paths) => {
     paths.forEach((path) => {
       const length = path.getTotalLength();
       const computed = svgDoc.defaultView.getComputedStyle(path);
@@ -712,13 +721,44 @@ document.addEventListener('DOMContentLoaded', () => {
       path.style.strokeDasharray = String(length);
       path.style.strokeDashoffset = String(length);
     });
+  };
 
-    if (prefersReducedMotion || typeof gsap === 'undefined') {
-      paths.forEach((path) => {
-        path.style.strokeDashoffset = '0';
-        path.style.fill = path.dataset.originalFill || 'none';
-        path.style.fillOpacity = path.dataset.originalFillOpacity || '1';
-      });
+  const finishLogoPathsImmediately = (paths) => {
+    paths.forEach((path) => {
+      path.style.strokeDashoffset = '0';
+      path.style.fill = path.dataset.originalFill || 'none';
+      path.style.fillOpacity = path.dataset.originalFillOpacity || '1';
+    });
+  };
+
+  const restorePathFills = (paths) => {
+    paths.forEach((path) => {
+      path.style.fill = path.dataset.originalFill || 'none';
+    });
+  };
+
+  const animateLogoSvg = () => {
+    if (!logoObject) {
+      showNavLinks(true);
+      return;
+    }
+
+    const svgDoc = logoObject.contentDocument;
+    if (!svgDoc) {
+      showNavLinks(true);
+      return;
+    }
+
+    const paths = Array.from(svgDoc.querySelectorAll('path'));
+    if (!paths.length) {
+      showNavLinks(true);
+      return;
+    }
+
+    initializeLogoPathsForDrawAnimation(svgDoc, paths);
+
+    if (!canAnimateWithGsap()) {
+      finishLogoPathsImmediately(paths);
       showNavLinks(true);
       return;
     }
@@ -728,7 +768,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showNavLinks();
     const navLeadIn = navSvgs.length ? 0.5 * (navSvgs.length - 1) : 0;
-
     const tl = gsap.timeline({ defaults: { ease: 'power1.inOut' }, delay: navLeadIn });
 
     if (strokes.length) {
@@ -743,11 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           duration: 1,
           fillOpacity: 1,
-          onStart: () => {
-            strokes.forEach((path) => {
-              path.style.fill = path.dataset.originalFill || 'none';
-            });
-          },
+          onStart: () => restorePathFills(strokes),
         },
         '-=0.4'
       );
@@ -769,30 +804,18 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           duration: 0.45,
           fillOpacity: 1,
-          onStart: () => {
-            dots.forEach((path) => {
-              path.style.fill = path.dataset.originalFill || 'none';
-            });
-          },
+          onStart: () => restorePathFills(dots),
         },
         '-=0.2'
       );
     }
-
   };
 
-  if (logoObject.contentDocument) {
-    animateSvg();
+  if (!logoObject) {
+    showNavLinks(true);
   } else {
-    logoObject.addEventListener('load', animateSvg, { once: true });
-  }
+    runNowOrOnObjectLoad(logoObject, animateLogoSvg);
   }
 
-  if (flowerBackgroundObject) {
-    if (flowerBackgroundObject.contentDocument) {
-      animateFlowerBackground();
-    } else {
-      flowerBackgroundObject.addEventListener('load', animateFlowerBackground, { once: true });
-    }
-  }
+  runNowOrOnObjectLoad(flowerBackgroundObject, animateFlowerBackground);
 });
