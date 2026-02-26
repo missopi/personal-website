@@ -976,26 +976,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Animates the flower background on the homepage with a staggered fade-in effect, and sets up the easter eggs.
 
-  const animateFlowerBackground = () => {
+  const getFlowerBackgroundContext = () => {
     if (!flowerBackgroundObject) {
-      return;
+      return null;
     }
 
     const svgDoc = flowerBackgroundObject.contentDocument;
     if (!svgDoc) {
-      flowerBackgroundObject.classList.add('is-ready');
-      return;
+      return null;
     }
 
     const flowers = Array.from(svgDoc.querySelectorAll('g[id^="flower-"]'));
+    return { svgDoc, flowers };
+  };
+
+  const setupFlowerBackgroundEasterEggs = () => {
+    const context = getFlowerBackgroundContext();
+    if (!context) {
+      return;
+    }
+
+    const { svgDoc, flowers } = context;
+    if (!flowers.length) {
+      return;
+    }
+
+    setupFlowerColorShiftEasterEgg(svgDoc, flowers);
+    setupFlowerPetalEasterEgg(svgDoc, flowers);
+  };
+
+  const animateFlowerBackground = () => {
+    const context = getFlowerBackgroundContext();
+    if (!context) {
+      if (flowerBackgroundObject) {
+        flowerBackgroundObject.classList.add('is-ready');
+      }
+      return;
+    }
+
+    const { svgDoc, flowers } = context;
 
     if (!flowers.length) {
       flowerBackgroundObject.classList.add('is-ready');
       return;
     }
 
-    setupFlowerColorShiftEasterEgg(svgDoc, flowers);
-    setupFlowerPetalEasterEgg(svgDoc, flowers);
+    setupFlowerBackgroundEasterEggs();
 
     setElementOpacity(flowers, '0');
     flowerBackgroundObject.classList.add('is-ready');
@@ -1163,11 +1189,22 @@ document.addEventListener('DOMContentLoaded', () => {
     runNowOrOnObjectLoad(flowerBackgroundObject, animateFlowerBackground);
   };
 
+  const rebindFlowerBackgroundEasterEggsOnPageShow = () => {
+    if (!flowerBackgroundObject) {
+      return;
+    }
+
+    window.addEventListener('pageshow', () => {
+      runNowOrOnObjectLoad(flowerBackgroundObject, setupFlowerBackgroundEasterEggs);
+    });
+  };
+
   const initializePage = () => {
     initPageTransitions();
     initNavInteractions();
     initLogoAnimation();
     initFlowerBackground();
+    rebindFlowerBackgroundEasterEggsOnPageShow();
   };
 
   initializePage();
