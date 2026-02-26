@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const PAGE_TRANSITION_STORAGE_KEY = 'navLogoPageTransition';
   const DEFAULT_PAGE_TRANSITION_MAX_AGE_MS = 10000;
   const INDEX_RETURN_FALLBACK_MAX_AGE_MS = 5000;
+  const MOBILE_BREAKPOINT_MAX_WIDTH = 768;
   const LINK_PAGE_LOGO_TARGET_TOP = 30;
   const LINK_PAGE_LOGO_TARGET_HEIGHT = 80;
   let skipIndexLogoIntroAnimation = false;
@@ -83,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const pathnamesMatch = (a, b) => normalizePathname(a) === normalizePathname(b);
+  const isMobileViewport = () => window.innerWidth <= MOBILE_BREAKPOINT_MAX_WIDTH;
 
   // Elements position and size.
   
@@ -122,6 +124,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Calculates where the logog should animate to.
 
   const getLinkedPageLogoTargetRectFromSourceLogo = (logoRect) => {
+    if (isMobileViewport()) {
+      return {
+        // Keep the mobile transition strictly vertical to avoid horizontal drift.
+        left: logoRect.left,
+        top: LINK_PAGE_LOGO_TARGET_TOP,
+        width: logoRect.width,
+        height: logoRect.height,
+        scale: 1,
+      };
+    }
+
     const sourceHeight = logoRect.height || 150;
     const scale = LINK_PAGE_LOGO_TARGET_HEIGHT / sourceHeight;
     const width = logoRect.width * scale;
@@ -333,7 +346,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const { x, y, scale } = getTransformBetweenRects(homeRect, startRect);
+      let { x, y, scale } = getTransformBetweenRects(homeRect, startRect);
+      if (isMobileViewport()) {
+        // Mobile home/linked logos are intended to match in size; keep the return animation translation-only.
+        scale = 1;
+      }
       enterIndexReturnMode();
 
       logoObject.style.transformOrigin = 'center center';
@@ -446,6 +463,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const applyLinkedPageLogoRect = (rect) => {
+    if (!linkedPageLogoLink || !linkedPageLogoObject || !hasRectSize(rect)) {
+      return;
+    }
+
+    linkedPageLogoLink.style.position = 'fixed';
+    linkedPageLogoLink.style.left = `${rect.left}px`;
+    linkedPageLogoLink.style.top = `${rect.top}px`;
+    linkedPageLogoLink.style.right = 'auto';
+    linkedPageLogoLink.style.transform = 'none';
+    linkedPageLogoLink.style.margin = '0';
+    linkedPageLogoLink.style.width = `${rect.width}px`;
+    linkedPageLogoLink.style.height = `${rect.height}px`;
+
+    linkedPageLogoObject.style.width = '100%';
+    linkedPageLogoObject.style.height = '100%';
+    linkedPageLogoObject.style.display = 'block';
+  };
+
   const animateLinkedPageLogoArrival = () => {
     if (!linkedPageLogoObject) {
       return;
@@ -469,6 +505,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const destinationRect = linkedPageLogoObject.getBoundingClientRect();
     if (!hasRectSize(destinationRect)) {
+      clearStoredPageTransition();
+      return;
+    }
+
+    if (isMobileViewport()) {
+      applyLinkedPageLogoRect(startRect);
       clearStoredPageTransition();
       return;
     }
@@ -591,15 +633,21 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinksContainer.style.pointerEvents = 'none';
         document.body.classList.add('is-page-transitioning');
 
+        let didNavigate = false;
         const navigate = () => {
+          if (didNavigate) {
+            return;
+          }
+          didNavigate = true;
           window.location.href = href;
         };
+        const isMobileTransition = isMobileViewport();
 
         if (hasGsap()) {
           gsap.killTweensOf(logoObject);
           gsap.killTweensOf(navLinksContainer);
 
-          const tl = gsap.timeline({ onComplete: navigate });
+          const tl = gsap.timeline();
           tl.to(
             navLinksContainer,
             {
@@ -620,6 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             0
           );
+          tl.call(navigate, null, isMobileTransition ? 1.02 : 1.2);
           return;
         }
 
@@ -648,8 +697,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           );
 
-          anim.addEventListener('finish', navigate, { once: true });
-          anim.addEventListener('cancel', navigate, { once: true });
+          const navigateDelayMs = isMobileTransition ? 1020 : 1200;
+          const navigateTimer = window.setTimeout(navigate, navigateDelayMs);
+          const finalizeNavigation = () => {
+            window.clearTimeout(navigateTimer);
+            navigate();
+          };
+
+          anim.addEventListener('finish', finalizeNavigation, { once: true });
+          anim.addEventListener('cancel', finalizeNavigation, { once: true });
           return;
         }
 

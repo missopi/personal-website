@@ -171,6 +171,10 @@ body.link-page-body {
 /* Responsive styles */
 
 @media (max-width: 768px) {
+  .linked-page-logo-slot {
+    min-height: 170px;
+  }
+
   .nav-links {
     flex-direction: column;
     gap: 15%;
@@ -183,5 +187,10 @@ body.link-page-body {
     width: min(85vw, 280px);
     height: auto;
     margin-bottom: 25%;
+  }
+
+  #logo-svg-linked-page {
+    width: min(85vw, 280px);
+    height: auto;
   }
 }
