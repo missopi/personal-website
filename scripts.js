@@ -974,7 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindFlowerCenterClick(flower10Center, 'petalEasterEggBound', triggerPetalFall);
   };
 
-  // Animates the flower background on the homepage with a staggered fade-in effect, and sets up the easter eggs.
+  // Retrieves the SVG document and flower groups from the flower background object.
 
   const getFlowerBackgroundContext = () => {
     if (!flowerBackgroundObject) {
@@ -990,6 +990,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return { svgDoc, flowers };
   };
 
+  // Sets up the easter eggs for the flower background.
+
   const setupFlowerBackgroundEasterEggs = () => {
     const context = getFlowerBackgroundContext();
     if (!context) {
@@ -1004,6 +1006,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFlowerColorShiftEasterEgg(svgDoc, flowers);
     setupFlowerPetalEasterEgg(svgDoc, flowers);
   };
+
+  // Sets up the animation for the flower background.
 
   const animateFlowerBackground = () => {
     const context = getFlowerBackgroundContext();
@@ -1063,6 +1067,8 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   };
 
+  // Prepares the logo paths for the draw animation by setting their stroke and fill styles, and configuring the stroke dash properties.
+
   const initializeLogoPathsForDrawAnimation = (svgDoc, paths) => {
     paths.forEach((path) => {
       const length = path.getTotalLength();
@@ -1097,6 +1103,8 @@ document.addEventListener('DOMContentLoaded', () => {
       path.style.fill = path.dataset.originalFill || 'none';
     });
   };
+
+  // Animates the logo SVG by drawing the paths and then filling them in, with a staggered timing. 
 
   const animateLogoSvg = () => {
     if (!logoObject) {
@@ -1176,6 +1184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Initializes the logo animation by preparing the SVG and paths.
+
   const initLogoAnimation = () => {
     if (!logoObject) {
       showNavLinks(true);
@@ -1185,9 +1195,13 @@ document.addEventListener('DOMContentLoaded', () => {
     runNowOrOnObjectLoad(logoObject, animateLogoSvg);
   };
 
+  // Initializes the flower background animation and easter eggs by waiting for the SVG to load and then setting up the necessary interactions and animations.
+
   const initFlowerBackground = () => {
     runNowOrOnObjectLoad(flowerBackgroundObject, animateFlowerBackground);
   };
+
+  // Rebinds the easter egg interactions for the flower background when the page is shown, to ensure they continue working after navigating back to the page.
 
   const rebindFlowerBackgroundEasterEggsOnPageShow = () => {
     if (!flowerBackgroundObject) {
@@ -1198,6 +1212,8 @@ document.addEventListener('DOMContentLoaded', () => {
       runNowOrOnObjectLoad(flowerBackgroundObject, setupFlowerBackgroundEasterEggs);
     });
   };
+
+  // Initializes all the page interactions and animations.
 
   const initializePage = () => {
     initPageTransitions();
