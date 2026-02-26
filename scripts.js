@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const logoObject = document.getElementById('logo-svg');
   const linkedPageLogoObject = document.getElementById('logo-svg-linked-page');
+  const linkedPageLogoLink = document.querySelector('.linked-page-logo-link[href]');
   const flowerBackgroundObject = document.getElementById('flower-background-object');
   const navLinksContainer = document.querySelector('.nav-links');
   const navSvgs = [
@@ -10,8 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
   ].filter(Boolean);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const PAGE_TRANSITION_STORAGE_KEY = 'navLogoPageTransition';
+  const DEFAULT_PAGE_TRANSITION_MAX_AGE_MS = 10000;
+  const INDEX_RETURN_FALLBACK_MAX_AGE_MS = 5000;
   const LINK_PAGE_LOGO_TARGET_TOP = 30;
   const LINK_PAGE_LOGO_TARGET_HEIGHT = 80;
+  let skipIndexLogoIntroAnimation = false;
+  let isIndexReturnAnimating = false;
 
   const clearStoredPageTransition = () => {
     try {
@@ -55,6 +60,53 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {
       return null;
     }
+  };
+
+  const normalizePathname = (pathname) => {
+    if (typeof pathname !== 'string' || !pathname) {
+      return pathname;
+    }
+
+    if (pathname === '/index.html') {
+      return '/';
+    }
+
+    if (pathname.endsWith('/index.html')) {
+      return pathname.slice(0, -'index.html'.length) || '/';
+    }
+
+    return pathname;
+  };
+
+  const pathnamesMatch = (a, b) => normalizePathname(a) === normalizePathname(b);
+
+  const getRectSnapshot = (rect) => ({
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+  });
+
+  const getTransformBetweenRects = (fromRect, toRect) => {
+    const fromCenterX = fromRect.left + (fromRect.width / 2);
+    const fromCenterY = fromRect.top + (fromRect.height / 2);
+    const toCenterX = toRect.left + (toRect.width / 2);
+    const toCenterY = toRect.top + (toRect.height / 2);
+
+    return {
+      x: toCenterX - fromCenterX,
+      y: toCenterY - fromCenterY,
+      scale: (toRect.height || 1) / (fromRect.height || 1),
+    };
+  };
+
+  const getStoredTransitionMaxAgeMs = (transition) => {
+    const maxAgeMs = Number(transition?.maxAgeMs);
+    if (Number.isFinite(maxAgeMs) && maxAgeMs > 0) {
+      return maxAgeMs;
+    }
+
+    return DEFAULT_PAGE_TRANSITION_MAX_AGE_MS;
   };
 
   const getLinkedPageLogoTargetRectFromSourceLogo = (logoRect) => {
@@ -104,26 +156,268 @@ document.addEventListener('DOMContentLoaded', () => {
     && !event.altKey
   );
 
-  const animateLinkedPageLogoArrival = () => {
-    if (!linkedPageLogoObject || prefersReducedMotion) {
+  const readStoredTransitionForCurrentPage = () => {
+    const transition = readStoredPageTransition();
+    if (!transition) {
+      return null;
+    }
+
+    if (!transition.timestamp || Date.now() - transition.timestamp > getStoredTransitionMaxAgeMs(transition)) {
+      clearStoredPageTransition();
+      return null;
+    }
+
+    if (!pathnamesMatch(transition.destinationPath, window.location.pathname)) {
+      clearStoredPageTransition();
+      return null;
+    }
+
+    return transition;
+  };
+
+  const savePageTransitionRects = ({
+    destinationPath,
+    startRect,
+    endRect = null,
+    maxAgeMs = DEFAULT_PAGE_TRANSITION_MAX_AGE_MS,
+  }) => {
+    if (!destinationPath || !hasRectSize(startRect)) {
+      return false;
+    }
+
+    const payload = {
+      destinationPath,
+      timestamp: Date.now(),
+      maxAgeMs,
+      startRect: getRectSnapshot(startRect),
+    };
+
+    if (hasRectSize(endRect)) {
+      payload.endRect = getRectSnapshot(endRect);
+    }
+
+    storePageTransition(payload);
+    return true;
+  };
+
+  const prepareIndexNavLinksForFadeIn = () => {
+    if (!navLinksContainer) {
+      return;
+    }
+
+    navLinksContainer.style.opacity = '1';
+    navLinksContainer.style.pointerEvents = 'none';
+    setElementOpacity(navSvgs, '0');
+  };
+
+  const cleanupIndexReturnAnimationState = () => {
+    if (logoObject) {
+      logoObject.style.transform = '';
+      logoObject.style.willChange = '';
+    }
+
+    if (navLinksContainer) {
+      navLinksContainer.style.opacity = '';
+      navLinksContainer.style.pointerEvents = '';
+    }
+
+    document.body.classList.remove('is-page-transitioning');
+    isIndexReturnAnimating = false;
+  };
+
+  const runIndexReturnAnimation = () => {
+    if (!logoObject || !navLinksContainer || isIndexReturnAnimating) {
+      return false;
+    }
+
+    isIndexReturnAnimating = true;
+    logoObject.style.transformOrigin = 'center center';
+    logoObject.style.willChange = 'transform';
+    prepareIndexNavLinksForFadeIn();
+    document.body.classList.remove('is-page-transitioning');
+
+    if (hasGsap()) {
+      gsap.killTweensOf(logoObject);
+      gsap.killTweensOf(navLinksContainer);
+      gsap.killTweensOf(navSvgs);
+
+      showNavLinks();
+
+      gsap.to(logoObject, {
+        x: 0,
+        y: 0,
+        scale: 1,
+        duration: 1.2,
+        ease: 'power2.inOut',
+        onComplete: cleanupIndexReturnAnimationState,
+        onInterrupt: cleanupIndexReturnAnimationState,
+      });
+
+      return true;
+    }
+
+    showNavLinks();
+
+    if (typeof logoObject.animate === 'function') {
+      const currentTransform = window.getComputedStyle(logoObject).transform;
+      const animation = logoObject.animate(
+        [
+          { transform: currentTransform === 'none' ? 'translate3d(0, 0, 0) scale(1)' : currentTransform },
+          { transform: 'translate3d(0, 0, 0) scale(1)' },
+        ],
+        {
+          duration: 1200,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards',
+        }
+      );
+
+      animation.addEventListener('finish', cleanupIndexReturnAnimationState, { once: true });
+      animation.addEventListener('cancel', cleanupIndexReturnAnimationState, { once: true });
+      return true;
+    }
+
+    cleanupIndexReturnAnimationState();
+    return true;
+  };
+
+  const enterIndexReturnMode = () => {
+    skipIndexLogoIntroAnimation = true;
+    clearStoredPageTransition();
+  };
+
+  const startIndexReturnAnimationFromRect = (startRect) => {
+    if (!logoObject || !hasRectSize(startRect)) {
       clearStoredPageTransition();
       return;
     }
 
-    const transition = readStoredPageTransition();
+    runNowOrOnObjectLoad(logoObject, () => {
+      const homeRect = logoObject.getBoundingClientRect();
+      if (!hasRectSize(homeRect)) {
+        clearStoredPageTransition();
+        return;
+      }
+
+      const { x, y, scale } = getTransformBetweenRects(homeRect, startRect);
+      enterIndexReturnMode();
+
+      logoObject.style.transformOrigin = 'center center';
+      logoObject.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+
+      runIndexReturnAnimation();
+    });
+  };
+
+  const restoreIndexReturnFromStoredTransition = () => {
+    if (!logoObject || !navLinksContainer) {
+      return;
+    }
+
+    const transition = readStoredTransitionForCurrentPage();
     if (!transition) {
       return;
     }
 
-    const now = Date.now();
-    const maxAgeMs = 10000;
-    if (!transition.timestamp || now - transition.timestamp > maxAgeMs) {
+    if (prefersReducedMotion) {
       clearStoredPageTransition();
       return;
     }
 
-    if (transition.destinationPath !== window.location.pathname) {
+    startIndexReturnAnimationFromRect(transition.startRect || transition.endRect);
+  };
+
+  const hasIndexExitVisualState = () => {
+    if (!logoObject || !navLinksContainer) {
+      return false;
+    }
+
+    const navOpacity = window.getComputedStyle(navLinksContainer).opacity;
+    const logoTransform = window.getComputedStyle(logoObject).transform;
+
+    return (
+      document.body.classList.contains('is-page-transitioning')
+      || navLinksContainer.style.pointerEvents === 'none'
+      || navOpacity === '0'
+      || logoTransform !== 'none'
+    );
+  };
+
+  const setupIndexReturnTransition = () => {
+    if (!logoObject || !navLinksContainer) {
+      return;
+    }
+
+    restoreIndexReturnFromStoredTransition();
+
+    if (prefersReducedMotion) {
+      return;
+    }
+
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted || !hasIndexExitVisualState()) {
+        return;
+      }
+
+      enterIndexReturnMode();
+      runIndexReturnAnimation();
+    });
+  };
+
+  const setupLinkedPageHomeReturnTransition = () => {
+    if (!linkedPageLogoObject || !linkedPageLogoLink || prefersReducedMotion) {
+      return;
+    }
+
+    const storeHomeReturnTransition = (maxAgeMs = DEFAULT_PAGE_TRANSITION_MAX_AGE_MS) => {
+      const destinationPath = getPathname(linkedPageLogoLink.getAttribute('href'));
+      savePageTransitionRects({
+        destinationPath,
+        startRect: linkedPageLogoObject.getBoundingClientRect(),
+        maxAgeMs,
+      });
+    };
+
+    let didStoreExplicitHomeClickTransition = false;
+
+    linkedPageLogoLink.addEventListener('click', (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      if (event.detail !== 0 && !isPlainLeftClick(event)) {
+        return;
+      }
+
+      didStoreExplicitHomeClickTransition = true;
+      storeHomeReturnTransition();
+    });
+
+    window.addEventListener('pagehide', () => {
+      if (didStoreExplicitHomeClickTransition) {
+        return;
+      }
+
+      storeHomeReturnTransition(INDEX_RETURN_FALLBACK_MAX_AGE_MS);
+    });
+
+    window.addEventListener('pageshow', () => {
+      didStoreExplicitHomeClickTransition = false;
+    });
+  };
+
+  const animateLinkedPageLogoArrival = () => {
+    if (!linkedPageLogoObject) {
+      return;
+    }
+
+    if (prefersReducedMotion) {
       clearStoredPageTransition();
+      return;
+    }
+
+    const transition = readStoredTransitionForCurrentPage();
+    if (!transition) {
       return;
     }
 
@@ -210,6 +504,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isTransitioning = false;
 
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted) {
+        return;
+      }
+
+      isTransitioning = false;
+      navLinksContainer.style.pointerEvents = '';
+      document.body.classList.remove('is-page-transitioning');
+    });
+
     navLinks.forEach((link) => {
       link.addEventListener('click', (event) => {
         if (isTransitioning) {
@@ -231,34 +535,13 @@ document.addEventListener('DOMContentLoaded', () => {
         isTransitioning = true;
 
         const logoRect = logoObject.getBoundingClientRect();
-        const currentCenterX = logoRect.left + (logoRect.width / 2);
-        const currentCenterY = logoRect.top + (logoRect.height / 2);
         const targetRect = getLinkedPageLogoTargetRectFromSourceLogo(logoRect);
-        const scale = targetRect.scale;
-        const endWidth = targetRect.width;
-        const endHeight = targetRect.height;
-        const endLeft = targetRect.left;
-        const endTop = targetRect.top;
-        const targetCenterX = endLeft + (endWidth / 2);
-        const targetCenterY = endTop + (endHeight / 2);
-        const translateX = targetCenterX - currentCenterX;
-        const translateY = targetCenterY - currentCenterY;
+        const { x: translateX, y: translateY, scale } = getTransformBetweenRects(logoRect, targetRect);
 
-        storePageTransition({
+        savePageTransitionRects({
           destinationPath,
-          timestamp: Date.now(),
-          startRect: {
-            left: logoRect.left,
-            top: logoRect.top,
-            width: logoRect.width,
-            height: logoRect.height,
-          },
-          endRect: {
-            left: endLeft,
-            top: endTop,
-            width: endWidth,
-            height: endHeight,
-          },
+          startRect: logoRect,
+          endRect: targetRect,
         });
 
         logoObject.style.transformOrigin = 'center center';
@@ -334,7 +617,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const initPageTransitions = () => {
+    setupIndexReturnTransition();
     animateLinkedPageLogoArrival();
+    setupLinkedPageHomeReturnTransition();
     setupIndexNavPageTransition();
   };
 
@@ -756,6 +1041,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const paths = Array.from(svgDoc.querySelectorAll('path'));
     if (!paths.length) {
       showNavLinks(true);
+      return;
+    }
+
+    if (skipIndexLogoIntroAnimation) {
       return;
     }
 
