@@ -124,6 +124,14 @@ body.link-page-body {
 
 /* Blog page styles */
 
+.blog-post-1-page .linked-page-logo-link {
+  position: static;
+  margin-top: 30px;
+  left: auto;
+  top: auto;
+  transform: none;
+}
+
 .blog-content {
   align-items: flex-start;
 }
