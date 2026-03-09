@@ -139,6 +139,7 @@ body.link-page-body {
 .blog-content .blog-subtitle,
 .blog-content .blog-text {
   text-align: left;
+  margin-left: 20px;
   width: 100%;
 }
 
@@ -157,9 +158,15 @@ body.link-page-body {
 }
 
 .blog-title {
-  font-size: 43px;
+  font-size: 48px;
   font-weight: 800;
   text-align: center;
+  margin: 0 0 6px 0;
+}
+
+.blog-date {
+  font-size: 14px;
+  margin: 0 0 50px 0;
 }
 
 .blog-subtitle {
