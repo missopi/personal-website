@@ -124,6 +124,16 @@ body.link-page-body {
 
 /* Blog page styles */
 
+.blog-content {
+  align-items: flex-start;
+}
+
+.blog-content .blog-subtitle,
+.blog-content .blog-text {
+  text-align: left;
+  width: 100%;
+}
+
 .blog-post {
   display: flex;
   align-items: center;
@@ -136,6 +146,23 @@ body.link-page-body {
   font-size: 28px;
   font-weight: 500;
   margin-left: 20px;
+}
+
+.blog-title {
+  font-size: 43px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.blog-subtitle {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.blog-text {
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .blog-post a {
@@ -151,7 +178,7 @@ body.link-page-body {
 
 .content-box {
   display: flex;
-  background-color: #f6e2e6;
+  background-color: #fcf0f3;
   border-radius: 15px;
   flex-direction: column;
   align-items: center;

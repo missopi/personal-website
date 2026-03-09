@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>missopi</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Lora:wght@400;500;600&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="h-full w-full link-page-body font-body">
+  <div class="page-content">
+    <div class="w-full h-full overflow-auto">
+      <div class="linked-page-logo-slot">
+        <a href="index.html" class="linked-page-logo-link">
+          <img id="logo-svg-linked-page" src="svgs/1-cropped.svg" alt="missopi" width="350" height="120">
+        </a>
+      </div>
+    </div>
+    <div class="content-box blog-content">
+      <p class="blog-title">Building a Now/Next App for My Autistic Sons - With Help From AI</p>
+
+      <p class="blog-text">Our house is full of visual cards.</p>
+      <p class="blog-text">They're attached to walls, scattered across the kitchen island, and stuffed in drawers. They help our children know what's coming next and communicate what they need.</p>
+      <p class="blog-text">But they never leave the house.</p>
+
+      <p class="blog-subtitle">Why This App?</p>
+      <p class="blog-text">I’d been working for nearly a decade in the police when I got married. Based in the video forensics lab, I specialised in facial comparison and image enhancement. 
+        The work was rewarding, but with the daily commute my hours were long.</p>
+      <p class="blog-text">When we had two sons, who we later discovered are both autistic with complex needs, it made sense to pursue a more family friendly career direction. 
+        I needed something flexible and ideally remote. Coding seemed like the natural choice as my husband already knew the industry well. 
+        The arrival of AI made that path feel less secure - ironic, given AI also helped make this app possible.</p>
+      <p class="blog-text">Like many SEN families, we use visual aids daily. Now and Next boards (also known as First and Then) are regularly used in autistic households like ours. 
+        Picture cards are all over our house for predictable routines and choices to help the boys understand what is coming next or communicate their needs.</p>
+      <p class="blog-text">Tons and tons of physical cards.</p>
+      <p class="blog-text">That’s okay in the house, I’m not the most organised but we manage. The visual aids never come out with us though because carrying them around is inconvenient and annoying.</p>
+      <p class="blog-text">So I decided to try building an app to have all our visual routines in one place, using our own photos. Something convenient, personalised and easy to use.</p>
+      <p class="blog-text">Having never made an app before and with no idea where to start, getting some help from AI seemed like a good place to begin.</p>
+      
+      <p class="blog-subtitle">Planning With ChatGPT</p>
+      <p class="blog-text">ChatGPT has been on my phone for a while, used for random day to day questions, recipes advice, and interior design ideas.</p>
+      <p class="blog-text">I knew what I wanted the app to do, but was clueless about where to start. 
+        So I typed in what I was aiming for and the general gist of my idea and ChatGPT helped me make a plan and get started. Seeing mockups of my ideas really helped me visualise how the finished app could look.</p>
+      <p class="blog-text">I come up with ideas easily, but can struggle with actually implementing them or organising my thoughts into a constructive plan. This is where I found ChatGPT most helpful. 
+        It felt less like asking a tool to give me all the answers and more like collaborating with a colleague. The ideas were still mine but I was being helped to logistically make them into something real.</p>
+      <p class="blog-text">ChatGPT’s tendency to consider all of my ideas as great and perfect, then offer ways to tweak them was disarming though. 
+        The consequence was that I sometimes struggled to discern good ideas from bad, and felt like I couldn’t really trust its opinions. I can be shockingly indecisive, so mistakes were made. 
+        In hindsight, going down a few wrong tracks was useful to help me learn though.</p>
+      <p class="blog-text">After fleshing out the main ideas, I started with what I thought would be the easiest part - coming up with a name.</p>
+      <p class="blog-text">It wasn't.</p>
+      <p class="blog-text">This took much longer than it should have. Looking back, it may have also been an excuse to delay the actual coding and procrastinate slightly longer.</p>
+
+      <p class="blog-subtitle">Choosing The Name</p>
+      <p class="blog-text">My husband prefers Claude and encouraged me to try that and ChatGPT simultaneously to compare their answers. Before then, I hadn’t realised ChatGPT was just one of many LLMs doing similar things.</p>
+      <p class="blog-text">It was fascinating how varied their responses were to the exact same prompts. I don’t think either gave obviously better responses than the other, but I was used to ChatGPT so found myself gravitating back to it a lot.</p>
+      <p class="blog-text">There were a lot of cheesy app names from both of them. Claude’s attempts at drawing an SVG logo based on my “ampersand going into an arrow with one fluid line” prompt was shocking though.</p>
+      <p class="blog-text">Choosing a name isn’t as simple as picking what you like apparently. The .app and .com domains were both taken of most of ones I chose, and I didn’t want a long confusing website name.</p>
+      <p class="blog-text">I settled on andNext after typing in loads of similar combinations of words including next into a domain name checker. I liked the idea of having the word next in the name, taken directly from ‘Now and Next’. 
+        AndNext.app was available so after massively overthinking it this was the app name finally sorted.</p>
+      <p class="blog-text">Or so I thought.</p>
+      <p class="blog-text">When I went to add my app to the App Store I found andNext was already being used so I had to change the name yet again. Luckily andThen was free. I could keep the same logo design and just change the wording slightly.</p>
+      <p class="blog-text">The domain andThenApp.com was available too.</p>
+
+      <p class="blog-subtitle">The right tool for me</p>
+      <p class="blog-text">I had no idea what to build my app in, or even what language to use. 
+        I’d dabbled with some projects in The Odin Project when I first started coding, but between childcare obligations, EHCPs, DLA forms and everything else that goes along with being a parent to special needs kids my brain was already full. 
+        I had forgotten a lot of what I’d learnt.</p>
+      <p class="blog-text">So once again, I looked to AI to guide me.</p>
+      <p class="blog-text">I liked the idea that my app could eventually run on both Apple and Android devices so I quickly discounted iOS and Android specific platforms like Swift.</p>
+      <p class="blog-text">I’d used JavaScript a small amount in The Odin Project, so React Native made the most sense. I wasn't a fan of learning the new language that Flutter required from me, Dart.</p>
+      <p class="blog-text">React Native comes in two versions apparently, Expo and React Native CLI. My app is in Expo. Slightly worryingly I don't remember making this choice, and think the LLM may have picked Expo for me. It seems in my naivety I just followed.</p>
+      <p class="blog-text">ChatGPT really came into its own with the logistics of actually building the app. 
+        It gave me step by step instructions about what I needed to install and run in the terminal, suggested online courses for React Native, and even helped with the initial folder structure and a few boilerplates examples to get me started.</p>
+
+      <p class="blog-subtitle">Too many menus!</p>
+      <p class="blog-text">At the start I was unsure of what I wanted the app to be and was looking at it to fix all of my SEN parenting issues in one place.</p>
+      <p class="blog-text">The result was menus upon menus. Overcrowded and confusing, exactly what I didn’t want it to be.</p>
+      <p class="blog-text">My first instinct, instead of decreasing the content, was to make the menus prettier so they would hopefully appear less overwhelming. This led me to accidentally making a slightly worse version of the Microsoft home screen.</p>
+      <p class="blog-text">Whoops.</p>
+      <p class="blog-text">This was when I realised that my initial idea of visual routines and now and next boards had got lost and I needed to scale back.</p>
+      <p class="blog-text">Choice boards, calendars, and timers could exist later or even in their own apps.</p>
+
+      <p class="blog-subtitle">Codex</p>
+      <p class="blog-text">My indecisiveness made me try lots of design ideas. I moved from headers to footers to neither and back again. From too many menus to no menu at all. With each change, AI helped me visualise my ideas.</p>
+      <p class="blog-text">For a sizeable chunk of the app's creation, in my naivety, I was typing my ideas into ChatGPT on my phone and then manually retyping its suggestions into VS Code on my laptop. 
+        It was slow, but it helped me learn the code base and build confidence with changing parts of the app myself without any help.</p>
+      <p class="blog-text">Then came Codex.</p>
+      <p class="blog-text">I hadn’t realised it had been sitting there in the right-hand sidebar of my screen the whole time.</p>
+      <p class="blog-text">Suddenly, I could just type what I wanted and Codex would go ahead and change my code for me. Transitions too jittery? Codex fixed it. A new modal? Done. It was intoxicating how easy it was.</p>
+      <p class="blog-text">Too easy though maybe.</p>
+      <p class="blog-text">Codex was fixing all my issues for me. Quickly my code was looking unfamiliar and I was struggling to understand it.</p>
+      <p class="blog-text">How was I ever going to learn coding or be able to debug my issues if the AI was doing everything for me?</p>
+      <p class="blog-text">I continued to use Codex throughout the app's creation. 
+        After initially getting caught up in the excitement, I was more cautious - reading through everything it did instead of blindly accepting everything and attempting to debug problems myself before asking for help.</p>
+
+      <p class="blog-subtitle">Card Redesigns</p>
+      <p class="blog-text">I struggled for a long time with the inconsistent sizing of the cards on the different parts of the app, and how images related to them. 
+        Between the Now/Next boards, routines, and library, there was a load of variation in aspect ratio. It made the app look confused and amateurish, and caused problems when resizing for different sized screens.</p>
+      <p class="blog-text">It wasn't working.</p>
+      <p class="blog-text">A big turning point in the design came when I separated the cards into their own reusable component and used it throughout the whole app. Now it was consistent. The design felt cohesive and intentional.</p>
+      <p class="blog-text">It sounds obvious now, but until it was suggested to me, I didn't even realise it was an option.</p>
+
+      <p class="blog-subtitle">Logging</p>
+      <p class="blog-text">I'd been using phone and tablet simulators on my laptop using XCode throughout my app creation. 
+        Before releasing it out into the world I thought it would be best to do some testing with some other real people though so I could hopefully get some useful feedback. I used TestFlight for this.</p>
+      <p class="blog-text">Immediately my first tester found a bug.</p>
+      <p class="blog-text">I didn't have the issue on my version of the app though so was totally stumped on how to fix it. How was I supposed to recreate it to test if it was working fine on my version?</p>
+      <p class="blog-text">I'd used console.log before in my projects but didn't realise I could use it within my app so other users could send me their logging information too.</p>
+      <p class="blog-text">After I implemented it, it proved invaluable.</p>
+
+      <p class="blog-subtitle">Adding my App to the App Store</p>
+      <p class="blog-text">This was surprisingly the easiest bit of the whole process, and much quicker than I expected.</p>
+      <p class="blog-text">Apple rejected my first build - apparently that's really common. It was an easy fix though. A quick update of the info.plist and 24 hours later andThen was approved and live on the App Store.</p>
+      <p class="blog-text">We're using the app regularly now. It helps a lot when we're out and about, especially for our youngest, who has a habit of willfully ignoring us or running in the opposite direction as soon as shoes or the car get mentioned.</p>
+      <p class="blog-text">I'm planning to make more apps now - for choice boards, timetables, and timers. I like the idea of having a whole family of SEN apps that we can use.</p>
+      <p class="blog-text">andThen is available on phone and tablet <a href="https://apps.apple.com/us/app/andthen/id6757491850" target="_blank" rel="noopener noreferrer">on the App Store.</a></p>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <footer class="w-full site-footer">
+    <div class="max-w-6xl mx-auto text-center">
+      <p class="font-body footer-text">© 2026 Sophie Rose</p>
+    </div>
+  </footer>
+  <script src="scripts.js"></script>
+</body>
+
+</html>
