@@ -165,12 +165,18 @@ body.link-page-body {
   font-size: 20px;
   color: #523535;
   font-weight: 500;
-  margin: 20px 0;
+  margin: 18px 0;
 }
 
 /* Responsive styles */
 
 @media (max-width: 768px) {
+  .content-box {
+    width: calc(100% - 42px);
+    margin-inline: 16px;
+    box-sizing: border-box;
+  }
+
   .linked-page-logo-slot {
     min-height: 170px;
   }
