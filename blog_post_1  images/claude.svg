@@ -1,0 +1,27 @@
+<svg width="200" height="120" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .logo-path {
+        fill: none;
+        stroke: #2563eb;
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
+  </defs>
+  
+  <!-- Single fluid path combining ampersand and arrow -->
+  <path class="logo-path" d="M 30 45 
+           C 30 25, 50 25, 60 40
+           C 70 55, 50 70, 40 60
+           C 35 55, 40 50, 45 55
+           C 50 60, 60 50, 70 60
+           C 80 70, 100 60, 110 50
+           L 140 50
+           L 130 40
+           M 140 50
+           L 130 60
+           M 140 50
+           L 170 50" />
+</svg>
