@@ -231,9 +231,84 @@ body.link-page-body {
   margin: 18px 0;
 }
 
+/* Projects page styles */
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(250px, 1fr));
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+  gap: 1rem;
+  width: min(100%, 800px);
+  margin: 0 auto;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.card-link {
+  display: block;
+  height: 100%;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 14px 0px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  will-change: box-shadow;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-inline: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.card-link:hover .card {
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card-label {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.card-label h3 {
+  margin: 3px 0;
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  display: block;
+  object-fit: cover;
+}
+
+.card img.contain-image {
+  object-fit: contain;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
 /* Responsive styles */
 
 @media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+    width: calc(100% - 32px);
+    max-width: 420px;
+  }
+
   .content-box {
     width: calc(100% - 42px);
     margin-inline: 16px;
@@ -261,5 +336,15 @@ body.link-page-body {
   #logo-svg-linked-page {
     width: min(85vw, 280px);
     height: auto;
+  }
+}
+
+/* Remove all animations and transitions for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
