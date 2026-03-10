@@ -97,7 +97,8 @@ body.link-page-body {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 25px;
+  flex-direction: column;
+  gap: 15px;
 }
 
 #blog-svg,
