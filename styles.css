@@ -190,6 +190,26 @@ body.link-page-body {
   color: #f2778e; /* A soft pink that matches the flower easter egg */
 }
 
+.blog-image-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 25px;
+  margin: 20px 0;
+}
+
+.blog-image {
+  max-width: 100%;
+}
+
+.blog-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
 /* About page styles */
 
 .content-box {
