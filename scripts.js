@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return DEFAULT_PAGE_TRANSITION_MAX_AGE_MS;
   };
 
-  // Calculates where the logog should animate to.
+  // Calculates where the logo should animate to.
 
   const getLinkedPageLogoTargetRectFromSourceLogo = (logoRect) => {
     if (isMobileViewport()) {
@@ -577,141 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sets up the page transition for navigating from the home page to a linked page.
 
   const setupIndexNavPageTransition = () => {
-    if (!logoObject || !navLinksContainer || prefersReducedMotion) {
-      return;
-    }
-
-    const navLinks = Array.from(navLinksContainer.querySelectorAll('a[href]'));
-    if (!navLinks.length) {
-      return;
-    }
-
-    let isTransitioning = false;
-
-    window.addEventListener('pageshow', (event) => {
-      if (!event.persisted) {
-        return;
-      }
-
-      isTransitioning = false;
-      navLinksContainer.style.pointerEvents = '';
-      document.body.classList.remove('is-page-transitioning');
-    });
-
-    navLinks.forEach((link) => {
-      link.addEventListener('click', (event) => {
-        if (isTransitioning) {
-          event.preventDefault();
-          return;
-        }
-
-        if (!isPlainLeftClick(event)) {
-          return;
-        }
-
-        const href = link.getAttribute('href');
-        const destinationPath = getPathname(href);
-        if (!href || !destinationPath) {
-          return;
-        }
-
-        event.preventDefault();
-        isTransitioning = true;
-
-        const logoRect = logoObject.getBoundingClientRect();
-        const targetRect = getLinkedPageLogoTargetRectFromSourceLogo(logoRect);
-        const { x: translateX, y: translateY, scale } = getTransformBetweenRects(logoRect, targetRect);
-
-        savePageTransitionRects({
-          destinationPath,
-          startRect: logoRect,
-          endRect: targetRect,
-        });
-
-        logoObject.style.transformOrigin = 'center center';
-        logoObject.style.willChange = 'transform, opacity';
-        navLinksContainer.style.pointerEvents = 'none';
-        document.body.classList.add('is-page-transitioning');
-
-        let didNavigate = false;
-        const navigate = () => {
-          if (didNavigate) {
-            return;
-          }
-          didNavigate = true;
-          window.location.href = href;
-        };
-        const isMobileTransition = isMobileViewport();
-
-        if (hasGsap()) {
-          gsap.killTweensOf(logoObject);
-          gsap.killTweensOf(navLinksContainer);
-
-          const tl = gsap.timeline();
-          tl.to(
-            navLinksContainer,
-            {
-              opacity: 0,
-              duration: 1.15,
-              ease: 'power2.out',
-            },
-            0
-          );
-          tl.to(
-            logoObject,
-            {
-              x: translateX,
-              y: translateY,
-              scale,
-              duration: 1.2,
-              ease: 'power2.inOut',
-            },
-            0
-          );
-          tl.call(navigate, null, isMobileTransition ? 1.02 : 1.2);
-          return;
-        }
-
-        if (typeof logoObject.animate === 'function' && typeof navLinksContainer.animate === 'function') {
-          navLinksContainer.animate(
-            [
-              { opacity: 1 },
-              { opacity: 0 },
-            ],
-            {
-              duration: 1150,
-              easing: 'ease-out',
-              fill: 'forwards',
-            }
-          );
-
-          const anim = logoObject.animate(
-            [
-              { transform: 'translate3d(0, 0, 0) scale(1)' },
-              { transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})` },
-            ],
-            {
-              duration: 1200,
-              easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-              fill: 'forwards',
-            }
-          );
-
-          const navigateDelayMs = isMobileTransition ? 1020 : 1200;
-          const navigateTimer = window.setTimeout(navigate, navigateDelayMs);
-          const finalizeNavigation = () => {
-            window.clearTimeout(navigateTimer);
-            navigate();
-          };
-
-          anim.addEventListener('finish', finalizeNavigation, { once: true });
-          anim.addEventListener('cancel', finalizeNavigation, { once: true });
-          return;
-        }
-
-        navigate();
-      });
-    });
+    // Forward navigation from index should use normal link behavior with no logo transition.
   };
 
   // Runs the initial page transition animations.
