@@ -295,6 +295,13 @@ body.link-page-body {
   object-fit: contain;
 }
 
+.card img.reduced-image {
+  width: 70%;
+  height: 70%;
+  margin: auto;
+  object-fit: contain;
+}
+
 a {
   text-decoration: none;
   color: black;
